@@ -51,6 +51,16 @@ This project provides a step-by-step guide to create Amazon Bedrock Knowledge Ba
    ```
 6. This script will set up the entire stack, including the necessary roles, S3 buckets, OpenAI schema, and Lambda function. If you need to update the reference document or add additionals documents to knowledge base, you can do so by uploading a new PDF file to the `documents` folder in the `src`. You have to manually resync the KnowledgeBase.
 
+7. Navigate to the `src/` directory in your project.
+   ```
+   cd agentic-rag-with-bedrock-agent-Kb/src
+   ```
+
+8. To test the backend resources deployed. Run the python script `call_bedrock_agent.py`. Script is now hardcoded with one of the sample prompts. Also, make sure your `.env` is updated with bedrock agent ID and Agent Alias ID (which you get once the resources are deployed using step 5 above).
+   ```
+   python call_bedrock_agent.py
+   ```
+
 
 ### Work in Progress - Sample QA Chatbot [FrontEnd]
 1. Navigate to the `src/app` directory in your project.
