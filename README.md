@@ -27,7 +27,6 @@ This project provides a step-by-step guide to create Amazon Bedrock Knowledge Ba
 
 
 - **Boto3**: The project uses the Boto3 library to interact with AWS services. You'll need to install it using `pip install boto3`.
-- **Pinecone**: You'll need to create a free Pinecone account and an index to store your vector data.
 - **Streamlit**: The project uses Streamlit to build the QA chatbot. You'll need to install it using `pip install streamlit`.
 
 ## Deployment
