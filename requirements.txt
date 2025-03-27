@@ -1,0 +1,11 @@
+boto3
+python-dotenv
+streamlit
+PyYAML
+pandas
+Pillow
+st-annotated-text
+opensearch-py
+retrying
+botocore
+
