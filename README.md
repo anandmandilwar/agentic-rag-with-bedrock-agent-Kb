@@ -51,14 +51,6 @@ This project provides a step-by-step guide to create Amazon Bedrock Knowledge Ba
    ```
 6. This script will set up the entire stack, including the necessary roles, S3 buckets, OpenAI schema, and Lambda function. If you need to update the reference document or add additionals documents to knowledge base, you can do so by uploading a new PDF file to the `documents` folder in the `src`. You have to manually resync the KnowledgeBase.
 
-<img src="./images/kb.png" width="600" /></br>
-
-<img src="./images/agents.png" width="600" /></br>
-
-<img src="./images/agent-details.png" width="600" /></br>
-
-<img src="./images/lambda.png" width="600" />
-
 
 ### Work in Progress - Sample QA Chatbot [FrontEnd]
 1. Navigate to the `src/app` directory in your project.
@@ -69,6 +61,6 @@ This project provides a step-by-step guide to create Amazon Bedrock Knowledge Ba
    ```
    streamlit run QnA_Using_Bedrock_Agent_and_KnowledgeBase.py
    ```
-3. This will launch the Sample QA chatbot, which you can use to interact with the Bedrock Knowledge Base and Pinecone Vector database.
+3. This will launch the Sample QA chatbot, which you can use to interact with the Bedrock Knowledge Base and/or Bedrock agent.
 
 <img src="./assets/Streamlit_QnA_ChatBot.png" width="400" />
