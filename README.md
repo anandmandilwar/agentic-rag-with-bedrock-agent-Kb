@@ -61,15 +61,27 @@ This project provides a step-by-step guide to create Amazon Bedrock Knowledge Ba
    ```
 
 
-### Work in Progress - Sample QA Chatbot [FrontEnd]
-1. Navigate to the `src/app` directory in your project.
+### Sample QA Chatbot [FrontEnd]
+1. Make sure you are on the project root folder.
    ```
    cd agentic-rag-with-bedrock-agent-Kb
    ```
-2. Run the `QnA_Using_Bedrock_Agent_and_KnowledgeBase.py` script to start the Streamlit QA chatbot.Its a multi page App. You will have the option to do the Q&A using ONLY Knowledge Base or using both - KnowledgeBase and bedrock Agent.
+2. Once you have  the Knowledge Base and bedrock agent up and running, grab AgentID, AliasID, KnowledgeBaseID and KnowledgeBase ARN
+
+3. For "Upload_Documents_to_KnowledgeBase" module, you need to create a lambda function (for now, you can do it from within the console). Lambda code is available in `src/app/lambda_function.py` file
+
+4. Once the Lambda function is created, make sure to Lambda has the permission to invoke Bedrock Data Ingestion Job. Modify the permission attached with the lambda as per the `src/app/lambda_policy.json` document.
+
+5. Craete a S3 trigger for the lambda to be invoked whenever files are uploaded to S3. This is for the data ingestion to start automatically.
+
+6. Make sure to update file `1_QnA_Using_Only_KnowledgeBase.py` with the Bedrock Foundation Mode ARN. 
+
+7. Finally update your `'env` file with the KnowledgeBaseID and DataSource S3 BucketName.
+
+8. Run the `QnA_Using_Bedrock_Agent_and_KnowledgeBase.py` script to start the Streamlit QA chatbot.Its a multi page App. You will have the option to do the Q&A using ONLY Knowledge Base or using both - KnowledgeBase and bedrock Agent.
    ```
    streamlit run QnA_Using_Bedrock_Agent_and_KnowledgeBase.py
    ```
-3. This will launch the Sample QA chatbot, which you can use to interact with the Bedrock Knowledge Base and/or Bedrock agent.
+9. This will launch the Sample QA chatbot, which you can use to interact with the Bedrock Knowledge Base and/or Bedrock agent.
 
 <img src="./assets/Streamlit_QnA_ChatBot.png" width="400" />
