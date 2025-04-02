@@ -12,7 +12,73 @@ s3_client = boto3.client('s3')
 lambda_client = boto3.client('lambda')
 bedrock_agent_client = boto3.client('bedrock-agent')
 bedrock_agent_runtime_client = boto3.client('bedrock-agent-runtime')
-agent_name = "virtual-assistant-agent"
+agent_name = "virtual-assistant-agent-0402"
+
+schema_json_string = {
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Password Reset API", 
+    "description": "API to reset the user password and generate a temporary password",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/reset": {
+      "post": {
+        "summary": "Reset user password",
+        "description": "Password reset successfully",
+        "operationId": "reset",
+        "responses": {
+          "200": {
+            "description": "Password reset successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ResetRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "ResetResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "TempRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "TempResponse": {
+        "type": "object",
+        "properties": {
+          "tempPassword": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
 
 
 def create_agent(region, account_id, kb_arn, kb_id):
@@ -77,8 +143,9 @@ def create_action_group(region, account_id, va_agent_id, kb_id):
     lambda_role_name = f'{agent_name}-lambda-role-{suffix}'
     lambda_code_path = "lambda_function.py"
     lambda_name = f'{agent_name}-{suffix}'
-    bucket_name = f'{agent_name}-{suffix}'
-    schema_key = f'{agent_name}-schema.json'
+    # Commented by Anand - Circumvent the issue while reading it from S3 Bucket
+    #bucket_name = f'{agent_name}-{suffix}'
+    #schema_key = f'{agent_name}-schema.json'
 
     try:
         print("Creating Agent action group")
@@ -142,10 +209,12 @@ def create_action_group(region, account_id, va_agent_id, kb_id):
         },
         actionGroupName='PasswordResetActionGroup',
         apiSchema={
-            's3': {
-                's3BucketName': bucket_name,
-                's3ObjectKey': schema_key
-            }
+            'payload' : json.dumps(schema_json_string)
+            # Commented below by Anand - Circumvent the S3 Read issue
+            #'s3': {
+            #    's3BucketName': bucket_name,
+            #    's3ObjectKey': schema_key
+            #}
         },
         description='Actions for password reset'
     )
@@ -171,17 +240,17 @@ def create_action_group(region, account_id, va_agent_id, kb_id):
 def create_agent_role(region, account_id,knowledge_base_arn ):
 
     suffix = f"{region}-{account_id}"
-    agent_name = "virtual-assistant-agent"
+    agent_name = "virtual-assistant-agent-0402"
     bucket_name = f'{agent_name}-{suffix}'
     bucket_name = f'{agent_name}-{suffix}'
     schema_key = f'{agent_name}-schema.json'
     schema_arn = f'arn:aws:s3:::{bucket_name}/{schema_key}'
     
-    va_agent_bedrock_allow_policy_name = f"va-bedrock-allow-{suffix}"
-    va_agent_s3_allow_policy_name = f"va-s3-allow-{suffix}"
-    va_agent_kb_allow_policy_name = f"va-kb-allow-{suffix}"
+    va_agent_bedrock_allow_policy_name = f"va-bedrock-allow-01-{suffix}"
+    va_agent_s3_allow_policy_name = f"va-s3-allow-01-{suffix}"
+    va_agent_kb_allow_policy_name = f"va-kb-allow-01-{suffix}"
     
-    agent_role_name = f'AmazonBedrockExecutionRoleForAgents_va'
+    agent_role_name = f'AmazonBedrockExecutionRoleForAgents01_va'
    
     va_agent_bedrock_allow_policy_statement = {
         "Version": "2012-10-17",
