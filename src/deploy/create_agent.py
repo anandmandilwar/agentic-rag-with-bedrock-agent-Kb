@@ -81,6 +81,133 @@ schema_json_string = {
 }
 
 
+def get_prompt_override_config(region,account_id):
+        """
+        This function returns the value for the key promptOverrideConfiguration which will be used
+        while creating the agent
+        :return: value for the key promptOverrideConfiguration
+        """
+
+        PRE_PROCESSING_PROMPT="""
+Human: 
+You are a classifying agent that filters user inputs into categories. Your job is to sort these inputs before they are passed along to the next stage.
+
+Here is how you should classify the input:
+
+-Category M:If the input is harmful and/or malicious even if it is fictional
+-Category N:If the input is not harmful and/or malicious
+
+<input>$question$</input>
+
+Please think hard about the input in <thinking> XML tags and provide the category letter to sort the input into within <category> XML tags.Please also share the rationale for categorization.
+
+Assistant:
+        """
+
+        ORCHESTRATION_PROMPT = """
+Human:
+You are a helpful chat assistant which answers based on the context provided below. Please only answer based on the provided context. If the answer is not there in the context, please politely say that you cannot answer the question. 
+
+Use the following format:
+
+<question>the input question you must answer</question>
+<thought>you should always think about what to do</thought>
+<action>the action to take, should be based on $instruction$
+</action>
+<action_input>the input to the action</action_input>
+<observation>the result of the action</observation>
+... (this <thought></thought>/<action></action>/<action_input></action_input>/<observation></observation> can repeat N times)
+<thought>I now know the final answer</thought>
+<answer>the final answer to the original input question</answer>
+
+<context>$instruction$</context>
+<question>$question$</question>
+
+Assistant:
+"""
+
+        POST_PROCESSING_PROMPT="""
+Human: 
+You are an agent tasked with providing more context to an answer that a function calling agent outputs. The function calling agent takes in a user’s question and calls the appropriate functions (a function call is equivalent to an API call) that it has been provided with in order to take actions in the real-world and gather more information to help answer the user’s question.
+
+At times, the function calling agent produces responses that may seem confusing to the user because the user lacks context of the actions the function calling agent has taken. Here’s an example:
+<example>
+    The user tells the function calling agent: “Acknowledge all policy engine violations under me. My alias is jsmith, start date is 09/09/2023 and end date is 10/10/2023.”
+
+    After calling a few API’s and gathering information, the function calling agent responds, “What is the expected date of resolution for policy violation POL-001?”
+
+    This is problematic because the user did not see that the function calling agent called API’s due to it being hidden in the UI of our application. Thus, we need to provide the user with more context in this response. This is where you augment the response and provide more information.
+
+    Here’s an example of how you would transform the function calling agent response into our ideal response to the user. This is the ideal final response that is produced from this specific scenario: “Based on the provided data, there are 2 policy violations that need to be acknowledged - POL-001 with high risk level created on 2023-06-01, and POL-002 with medium risk level created on 2023-06-02. What is the expected date of resolution date to acknowledge the policy violation POL-001?”
+</example>
+
+It’s important to note that the ideal answer does not expose any underlying implementation details that we are trying to conceal from the user like the actual names of the functions.
+
+Do not ever include any API or function names or references to these names in any form within the final response you create. An example of a violation of this policy would look like this: “To update the order, I called the order management APIs to change the shoe color to black and the shoe size to 10.” The final response in this example should instead look like this: “I checked our order management system and changed the shoe color to black and the shoe size to 10.”
+
+Now you will try creating a final response. Here’s the original user input <user_input>$question$</user_input>.
+
+Here is the latest raw response from the function calling agent that you should translate to bengali: <latest_response>$latest_response$</latest_response>.
+
+And here is the history of the actions the function calling agent has taken so far in this conversation: <history>$responses$</history>.
+
+Please output your transformed response within <final_response></final_response> XML tags. 
+
+Assistant:
+        """
+
+        config = {
+            "overrideLambda": f"arn:aws:lambda:{region}:{account_id}:function:preprocess-lambda",
+            "promptConfigurations": [
+                {
+                    "basePromptTemplate": PRE_PROCESSING_PROMPT,
+                    "inferenceConfiguration": {
+                        "maximumLength": 2048,
+                        "stopSequences": ["Human:"],
+                        "temperature": 0,
+                        "topK": 1,
+                        "topP": 1
+                    },
+                    "parserMode": "OVERRIDDEN",
+                    "promptCreationMode": "OVERRIDDEN",
+                    "promptState": "ENABLED",
+                    "promptType": "PRE_PROCESSING"
+                },
+                {
+                    "basePromptTemplate": ORCHESTRATION_PROMPT,
+                    "inferenceConfiguration": {
+                        "maximumLength": 2048,
+                        "stopSequences": ["Human:"],
+                        "temperature": 0,
+                        "topK": 1,
+                        "topP": 1
+                    },
+                    "parserMode": "OVERRIDDEN",
+                    "promptCreationMode": "OVERRIDDEN",
+                    "promptState": "ENABLED",
+                    "promptType": "ORCHESTRATION"
+                },
+                {
+                    "basePromptTemplate": POST_PROCESSING_PROMPT,
+                    "inferenceConfiguration": {
+                        "maximumLength": 2048,
+                        "stopSequences": ["Human:"],
+                        "temperature": 0,
+                        "topK": 1,
+                        "topP": 1
+                    },
+                    "parserMode": "OVERRIDDEN",
+                    "promptCreationMode": "OVERRIDDEN",
+                    "promptState": "ENABLED",
+                    "promptType": "POST_PROCESSING"
+                }
+            ]
+        }
+
+      
+        return config
+
+
 def create_agent(region, account_id, kb_arn, kb_id):
 
     #create all the required policies and roles
@@ -104,6 +231,7 @@ def create_agent(region, account_id, kb_arn, kb_id):
         idleSessionTTLInSeconds=1800,
         foundationModel= "anthropic.claude-v2",    #"anthropic.claude-3-haiku-20240307-v1:0",
         instruction=agent_instruction,
+        promptOverrideConfiguration=get_prompt_override_config(region,account_id)
     )
     print("Agent created successfully")
     #print(va_agent_obj)
